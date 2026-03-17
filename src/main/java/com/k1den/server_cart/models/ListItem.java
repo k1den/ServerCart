@@ -20,13 +20,11 @@ public class ListItem {
     @Column(name = "assigned_user_id")
     private Integer assignedUserId;
 
-    // --- ДОБАВЛЯЕМ КАТЕГОРИЮ ---
-    private String category = "Разное"; // По умолчанию будет "Разное"
+    private String category = "Разное";
 
     @Column(name = "assignee_name")
     private String assigneeName;
 
-    // Геттер и Сеттер
     public String getAssigneeName() {
         return assigneeName;
     }
@@ -35,7 +33,6 @@ public class ListItem {
         this.assigneeName = assigneeName;
     }
 
-    // Обязательно добавь Геттер и Сеттер:
     public String getCategory() {
         return category;
     }
@@ -44,7 +41,6 @@ public class ListItem {
         this.category = category;
     }
 
-    // Геттеры и сеттеры
     public Integer getId() {
         return id;
     }

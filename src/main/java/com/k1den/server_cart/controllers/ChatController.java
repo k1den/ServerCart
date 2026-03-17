@@ -28,7 +28,6 @@ public class ChatController {
     // Отправить инвайт по никнейму
     @PostMapping("/{chatId}/invite")
     public ResponseEntity<?> inviteUser(@PathVariable Integer chatId, @RequestParam String username, @RequestParam String chatTitle) {
-        // Ищем пользователя по никнейму
         User invitee = userRepository.findByUsername(username).orElse(null);
         if (invitee == null) {
             return ResponseEntity.badRequest().body("Пользователь не найден");
@@ -57,21 +56,19 @@ public class ChatController {
         return ResponseEntity.badRequest().build();
     }
 
-    // 1. Создать новый чат
+    // Создать новый чат
     @PostMapping("/create")
     public ResponseEntity<Chat> createChat(@RequestParam String title, @RequestParam Integer userId) {
-        // Создаем сам чат
         Chat chat = new Chat();
         chat.setTitle(title);
         Chat savedChat = chatRepository.save(chat);
 
-        // Привязываем создателя к чату с правами ADMIN
         chatRepository.addMemberToChat(savedChat.getId(), userId, "ADMIN");
 
         return ResponseEntity.ok(savedChat);
     }
 
-    // 2. Получить список чатов (понадобится нам в следующем шаге)
+    // Получить список чатов (понадобится нам в следующем шаге)
     @GetMapping("/my")
     public ResponseEntity<List<Chat>> getMyChats(@RequestParam Integer userId) {
         List<Chat> chats = chatRepository.findChatsByUserId(userId);

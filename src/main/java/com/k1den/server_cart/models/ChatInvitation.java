@@ -10,10 +10,9 @@ public class ChatInvitation {
     private Integer id;
 
     private Integer chatId;
-    private Integer inviteeId; // Кого приглашают
-    private String chatTitle; // Название чата, куда зовут
+    private Integer inviteeId;
+    private String chatTitle;
 
-    // Геттеры и сеттеры
     public Integer getId() {
         return id;
     }

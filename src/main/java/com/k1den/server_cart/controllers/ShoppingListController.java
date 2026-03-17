@@ -20,9 +20,8 @@ public class ShoppingListController {
     @Autowired
     private ListItemRepository itemRepository;
 
-    // --- УПРАВЛЕНИЕ СПИСКАМИ ---
 
-    // 1. Создать новый список для чата
+    // Создать новый список для чата
     @PostMapping("/create")
     public ResponseEntity<ShoppingList> createList(@RequestParam Integer chatId) {
         ShoppingList list = new ShoppingList();
@@ -31,20 +30,18 @@ public class ShoppingListController {
         return ResponseEntity.ok(listRepository.save(list));
     }
 
-    // 2. Получить списки чата
+    // Получить списки чата
     @GetMapping("/chat/{chatId}")
     public ResponseEntity<List<ShoppingList>> getListsByChat(@PathVariable Integer chatId) {
         return ResponseEntity.ok(listRepository.findByChatId(chatId));
     }
 
-    // --- УПРАВЛЕНИЕ ПРОДУКТАМИ В СПИСКЕ ---
-
-    // 3. Добавить продукт в список
+    // Добавить продукт в список
     @PostMapping("/items/add")
     public ResponseEntity<ListItem> addItem(
             @RequestParam Integer listId,
             @RequestParam String name,
-            @RequestParam(defaultValue = "Разное") String category) { // <-- Новое поле
+            @RequestParam(defaultValue = "Разное") String category) {
 
         ListItem item = new ListItem();
         item.setListId(listId);
@@ -53,17 +50,17 @@ public class ShoppingListController {
         return ResponseEntity.ok(itemRepository.save(item));
     }
 
-    // 4. Получить все продукты списка
+    // Получить все продукты списка
     @GetMapping("/{listId}/items")
     public ResponseEntity<List<ListItem>> getItems(@PathVariable Integer listId) {
         return ResponseEntity.ok(itemRepository.findByListIdOrderByIdAsc(listId));
     }
 
-    // 5. Переключить статус (Куплено / Не куплено)
+    // Переключить статус (Куплено / Не куплено)
     @PutMapping("/items/{itemId}/toggle")
     public ResponseEntity<ListItem> toggleItemStatus(@PathVariable Integer itemId) {
         ListItem item = itemRepository.findById(itemId).orElseThrow();
-        item.setIsBought(!item.getIsBought()); // Меняем статус на противоположный
+        item.setIsBought(!item.getIsBought());
         return ResponseEntity.ok(itemRepository.save(item));
     }
 
@@ -81,14 +78,14 @@ public class ShoppingListController {
         return ResponseEntity.ok(listRepository.findByUserIdAndChatIdIsNull(userId));
     }
 
-    // 6. Удалить продукт из списка
+    // Удалить продукт из списка
     @DeleteMapping("/items/{itemId}/delete")
     public org.springframework.http.ResponseEntity<Void> deleteItem(@PathVariable Integer itemId) {
         itemRepository.deleteById(itemId);
         return org.springframework.http.ResponseEntity.ok().build();
     }
 
-    // 7. Назначить ответственного за покупку
+    // Назначить ответственного за покупку
     @PutMapping("/items/{itemId}/assign")
     public ResponseEntity<ListItem> assignItem(
             @PathVariable Integer itemId,

@@ -22,9 +22,8 @@ public class ShoppingList {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "user_id")
-    private Integer userId; // Может быть null, если список в чате
+    private Integer userId;
 
-    // Добавь Геттер и Сеттер
     public Integer getUserId() {
         return userId;
     }
@@ -33,7 +32,6 @@ public class ShoppingList {
         this.userId = userId;
     }
 
-    // Геттеры и сеттеры
     public Integer getId() {
         return id;
     }

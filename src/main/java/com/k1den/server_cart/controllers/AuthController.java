@@ -17,63 +17,57 @@ import java.util.Random;
 public class AuthController {
 
     @Autowired
-    private UserRepository userRepository; // ДОБАВИЛИ РЕПОЗИТОРИЙ
+    private UserRepository userRepository;
 
     private final Map<String, String> verificationCodes = new HashMap<>();
 
     @Autowired
     private JavaMailSender mailSender;
 
-    // 1. Принимаем запрос от Android на отправку кода
     @PostMapping("/request-code")
     public ResponseEntity<Void> requestCode(@RequestParam String email, @RequestParam String username) {
 
-        // Генерируем 6-значный код
         Random random = new Random();
         String code = String.format("%06d", random.nextInt(999999));
 
-        // Сохраняем код в памяти
         verificationCodes.put(email, code);
 
-        // Отправляем реальное письмо
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("louisecaezgf0@rambler.ru"); // Тот же email, что в настройках
-        message.setTo(email); // Почта, которую ввел юзер в Android
+        message.setFrom("louisecaezgf0@rambler.ru");
+        message.setTo(email);
         message.setSubject("Код подтверждения - Совместные покупки");
         message.setText("Привет, " + username + "!\nВаш код для входа: " + code);
 
         try {
             mailSender.send(message);
             System.out.println("Код " + code + " успешно отправлен на " + email);
-            return ResponseEntity.ok().build(); // Возвращаем пустой успешный ответ 200
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError().build(); // Возвращаем ошибку 500
+            return ResponseEntity.internalServerError().build();
         }
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<?> verifyCode(@RequestParam String email,
-                                        @RequestParam String username,
-                                        @RequestParam String code) {
-        String savedCode = verificationCodes.get(email);
+    public ResponseEntity<User> verifyCode(
+            @RequestParam String email,
+            @RequestParam String username,
+            @RequestParam String code,
+            @RequestParam(required = false, defaultValue = "#CCCCCC") String avatarColor) {
 
+        String savedCode = verificationCodes.get(email);
         if (savedCode != null && savedCode.equals(code)) {
-            // КОД ВЕРНЫЙ! Ищем пользователя или создаем нового
             verificationCodes.remove(email);
 
             User user = userRepository.findByEmail(email).orElseGet(() -> {
-                // Если юзера нет, создаем нового (РЕГИСТРАЦИЯ)
                 User newUser = new User();
                 newUser.setEmail(email);
                 newUser.setUsername(username);
-                return userRepository.save(newUser); // Сохраняем в PostgreSQL
+                newUser.setAvatarColor(avatarColor);
+                return userRepository.save(newUser);
             });
-
-            // Возвращаем пользователя в Android (он преобразуется в JSON автоматически)
             return ResponseEntity.ok(user);
-        } else {
-            return ResponseEntity.badRequest().body("Invalid code");
         }
+        return ResponseEntity.badRequest().build();
     }
 }

@@ -20,7 +20,6 @@ public class User {
 
     private String city;
 
-    // Геттеры и сеттеры (ОБЯЗАТЕЛЬНО СГЕНЕРИРУЙ ИХ или напиши руками)
     public Integer getId() {
         return id;
     }
