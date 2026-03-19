@@ -35,10 +35,10 @@ public class ChatAiController {
     public ResponseEntity<String> processMessage(@RequestParam Integer chatId, @RequestParam String messageText) {
 
         System.out.println("════════════════════════════════════════");
-        System.out.println("📩 Входящее сообщение: " + messageText);
+        System.out.println("Входящее сообщение: " + messageText);
 
         List<Command> commands = parseCommands(messageText);
-        System.out.println("📝 Найдено команд: " + commands.size());
+        System.out.println("Найдено команд: " + commands.size());
         for (int i = 0; i < commands.size(); i++) {
             System.out.println("   Команда " + (i + 1) + ": " + commands.get(i).action + " → " + commands.get(i).text);
         }
@@ -50,16 +50,16 @@ public class ChatAiController {
             if (cmd.isNegative()) {
                 List<String> excluded = extractItemsFromText(cmd.text);
                 itemsToExclude.addAll(excluded);
-                System.out.println("   ⛔ Исключить: " + excluded);
+                System.out.println("Исключить: " + excluded);
             } else {
                 List<Map<String, String>> items = processPhrase(cmd.text);
                 itemsToAdd.addAll(items);
-                System.out.println("   ✅ Добавить: " + items.size() + " товаров");
+                System.out.println("Добавить: " + items.size() + " товаров");
             }
         }
 
-        System.out.println("📊 Всего к добавлению: " + itemsToAdd.size());
-        System.out.println("📊 Всего к исключению: " + itemsToExclude.size());
+        System.out.println("Всего к добавлению: " + itemsToAdd.size());
+        System.out.println("Всего к исключению: " + itemsToExclude.size());
 
         List<Map<String, String>> filteredItems = new ArrayList<>();
         for (Map<String, String> item : itemsToAdd) {
@@ -70,7 +70,7 @@ public class ChatAiController {
             for (String excluded : itemsToExclude) {
                 if (name.equalsIgnoreCase(excluded)) {
                     shouldExclude = true;
-                    System.out.println("⛔ ИСКЛЮЧЁН: " + name);
+                    System.out.println("ИСКЛЮЧЁН: " + name);
                     break;
                 }
             }
@@ -109,12 +109,12 @@ public class ChatAiController {
             itemRepository.save(item);
             addedCount++;
 
-            System.out.println("✅ Добавлен товар: " + normalizedName + " (" + category + ")");
+            System.out.println("Добавлен товар: " + normalizedName + " (" + category + ")");
         }
 
-        System.out.println("🎉 Итого добавлено: " + addedCount);
+        System.out.println("Итого добавлено: " + addedCount);
         System.out.println("════════════════════════════════════════");
-        return ResponseEntity.ok("✅ Добавлено товаров: " + addedCount);
+        return ResponseEntity.ok("Добавлено товаров: " + addedCount);
     }
 
     static class Command {
@@ -191,7 +191,7 @@ public class ChatAiController {
     }
 
     private List<Map<String, String>> processPhrase(String phrase) {
-        System.out.println("🤖 Обрабатываем фразу: " + phrase);
+        System.out.println("Обрабатываем фразу: " + phrase);
 
         String prompt = """
         Ты парсер списка покупок. Извлеки ВСЕ товары из фразы:
@@ -215,7 +215,7 @@ public class ChatAiController {
         String aiResponse = callAiApi(prompt);
 
         if (aiResponse == null || aiResponse.isEmpty()) {
-            System.out.println("⚠️ ИИ не вернул ответ для фразы");
+            System.out.println("⚠ИИ не вернул ответ для фразы");
             return new ArrayList<>();
         }
 
@@ -233,11 +233,11 @@ public class ChatAiController {
                 items = Collections.singletonList(singleItem);
             }
 
-            System.out.println("   ✅ Найдено товаров: " + items.size());
+            System.out.println("Найдено товаров: " + items.size());
             return items;
 
         } catch (Exception e) {
-            System.out.println("   ❌ Ошибка парсинга: " + e.getMessage());
+            System.out.println("Ошибка парсинга: " + e.getMessage());
             return new ArrayList<>();
         }
     }
