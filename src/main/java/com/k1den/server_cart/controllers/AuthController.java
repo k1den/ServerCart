@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 
 @RestController
@@ -25,7 +26,23 @@ public class AuthController {
     private JavaMailSender mailSender;
 
     @PostMapping("/request-code")
-    public ResponseEntity<Void> requestCode(@RequestParam String email, @RequestParam String username) {
+    public ResponseEntity<?> requestCode(@RequestParam String email, @RequestParam String username) {
+        email = email.trim().toLowerCase();
+        username = username.trim();
+
+        Optional<User> existingUserByEmail = userRepository.findByEmail(email);
+        Optional<User> existingUserByUsername = userRepository.findByUsername(username);
+
+        if (existingUserByEmail.isPresent()) {
+            User user = existingUserByEmail.get();
+            if (!user.getUsername().equals(username)) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Пользователь с такой почтой уже зарегистрирован под другим именем."));
+            }
+        } else {
+            if (existingUserByUsername.isPresent()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Это имя пользователя уже занято."));
+            }
+        }
 
         Random random = new Random();
         String code = String.format("%06d", random.nextInt(999999));
@@ -41,33 +58,52 @@ public class AuthController {
         try {
             mailSender.send(message);
             System.out.println("Код " + code + " успешно отправлен на " + email);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok(Map.of("message", "Код отправлен на почту"));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body(Map.of("error", "Ошибка отправки письма"));
         }
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<User> verifyCode(
+    public ResponseEntity<?> verifyCode(
             @RequestParam String email,
             @RequestParam String username,
             @RequestParam String code,
             @RequestParam(required = false, defaultValue = "#CCCCCC") String avatarColor) {
 
-        String savedCode = verificationCodes.get(email);
-        if (savedCode != null && savedCode.equals(code)) {
-            verificationCodes.remove(email);
+        email = email.trim().toLowerCase();
+        username = username.trim();
 
-            User user = userRepository.findByEmail(email).orElseGet(() -> {
-                User newUser = new User();
-                newUser.setEmail(email);
-                newUser.setUsername(username);
-                newUser.setAvatarColor(avatarColor);
-                return userRepository.save(newUser);
-            });
-            return ResponseEntity.ok(user);
+        String savedCode = verificationCodes.get(email);
+
+        if (savedCode == null || !savedCode.equals(code)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Неверный код или срок действия истек"));
         }
-        return ResponseEntity.badRequest().build();
+
+        verificationCodes.remove(email);
+
+        Optional<User> existingUser = userRepository.findByEmail(email);
+
+        User user;
+
+        if (existingUser.isPresent()) {
+            user = existingUser.get();
+            if (!user.getUsername().equals(username)) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Конфликт данных пользователя"));
+            }
+        } else {
+            if (userRepository.findByUsername(username).isPresent()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Имя пользователя уже занято"));
+            }
+
+            User newUser = new User();
+            newUser.setEmail(email);
+            newUser.setUsername(username);
+            newUser.setAvatarColor(avatarColor);
+            user = userRepository.save(newUser);
+        }
+
+        return ResponseEntity.ok(user);
     }
 }
